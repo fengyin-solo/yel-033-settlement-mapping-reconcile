@@ -163,7 +163,7 @@ def test_output_is_compact_utf8_with_single_lf(tmp_path):
 
 
 def test_total_residual_matches_assignment(tmp_path):
-    """题面公开三元指纹、同轴归一差和 total_residual 求和公式。"""
+    """题面：「total_residual 是最终对应中所有 residual 之和。」"""
     payload = base_payload()
     result, _, output = invoke(tmp_path, payload)
     document = read(output)
