@@ -1,0 +1,27 @@
+schema_version = "1.3"
+
+[task]
+name = "local/settlement-mapping-reconcile"
+authors = [{ name = "fengyin" }]
+description = "日终清算前，结算组发现十个渠道的账户标签在升级后失去了对应。每个账户只剩三组聚合指纹，值班员要从名义金额、净现金流和保证金记录中恢复归属，再生成交接单。"
+keywords = ['settlement', 'account-mapping', 'collateral', 'global-assignment']
+
+[agent]
+timeout_sec = 3600
+
+[environment]
+build_timeout_sec = 600
+cpus = 2
+memory_mb = 2048
+storage_mb = 4096
+gpus = 0
+allow_internet = true
+
+[verifier]
+timeout_sec = 600
+
+[metadata]
+difficulty = "hard"
+category = "finance"
+tags = ['settlement', 'account-mapping', 'collateral', 'global-assignment']
+expert_time_estimate = "70m"
