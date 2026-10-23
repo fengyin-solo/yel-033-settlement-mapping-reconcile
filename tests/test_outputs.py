@@ -163,13 +163,29 @@ def test_output_is_compact_utf8_with_single_lf(tmp_path):
 
 
 def test_total_residual_matches_assignment(tmp_path):
-    """题面：「total_residual 是最终对应中所有 residual 之和。」"""
-    result, _, output = invoke(tmp_path, base_payload())
+    """题面公开三元指纹、同轴归一差和 total_residual 求和公式。"""
+    payload = base_payload()
+    result, _, output = invoke(tmp_path, payload)
     document = read(output)
     total = sum(row["residual"] for row in document["ledger_assignments"])
     assert result.returncode == 0
     assert document["total_residual"] == pytest.approx(total, abs=1e-12)
     assert document["total_residual"] == pytest.approx(0.0, abs=1e-10)
+    readings = {row["slot"]: row for row in payload["readings"]}
+    profiles = {row["ledger_id"]: row["fingerprint"] for row in payload["profiles"]}
+    for assignment in document["ledger_assignments"]:
+        reading = readings[assignment["slot"]]
+        features = [
+            reading["gross_notional"] / reading["net_cash"],
+            reading["collateral_ratio"] * (1 + reading["funding_bps"] / 10000),
+            reading["trade_count"] * 12 / (reading["gross_notional"] + 1),
+        ]
+        features = [round(value, 12) for value in features]
+        expected = sum(
+            ((left - right) / (abs(left) + abs(right) + 1e-12)) ** 2
+            for left, right in zip(features, profiles[assignment["ledger_id"]])
+        )
+        assert assignment["residual"] == pytest.approx(expected, abs=1e-12)
 
 
 def test_ceiling_accepts_inside_case(tmp_path):

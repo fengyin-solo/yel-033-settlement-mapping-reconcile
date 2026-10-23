@@ -14,6 +14,16 @@
 
 日终输入最外层的成员集合由清算批号 `batch_id`、本批限额 `limits`、账户档案 `profiles` 和现场读数 `readings` 组成。limits 限定本批清算通道数与总残差上限；档案由 `ledger_id` 与三元 fingerprint 表示，现场行由 slot 以及 gross_notional、net_cash、collateral_ratio、trade_count、funding_bps 组成。三元指纹依次是成交周转比、融资费率修正后的保证金覆盖比、以及按名义金额归一的结算笔数指数。输出和留痕的键集合见合同。
 
+现场三元指纹必须按以下顺序和公式计算，五个输入都必须为正有限数：
+
+```text
+turnover = gross_notional / net_cash
+funding_coverage = collateral_ratio * (1 + funding_bps / 10000)
+settlement_activity = trade_count * 12 / (gross_notional + 1)
+```
+
+三个结果分别四舍五入到小数点后 12 位，形成 `[turnover, funding_coverage, settlement_activity]`。现场指纹与档案 fingerprint 的同轴差值为 `(a-b)/(abs(a)+abs(b)+1e-12)`，三个差值分别平方后相加得到该行的 `residual`；`total_residual` 是最终全局对应中全部行 `residual` 的普通浮点求和。任何分量计算结果非有限或不为正时，按坏结算输入拒收。
+
 ## 复核口径
 
 ```text
